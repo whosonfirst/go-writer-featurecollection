@@ -1,8 +1,8 @@
-module github.com/whosonfirst/go-writer-featurecollection
+module github.com/whosonfirst/go-writer-featurecollection/v2
 
 go 1.12
 
 require (
-	github.com/paulmach/orb v0.2.1
-	github.com/whosonfirst/go-writer v0.4.0
+	github.com/paulmach/orb v0.7.1
+	github.com/whosonfirst/go-writer/v2 v2.0.0
 )
