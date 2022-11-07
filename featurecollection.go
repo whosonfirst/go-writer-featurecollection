@@ -64,6 +64,25 @@ func NewFeatureCollectionWriter(ctx context.Context, uri string) (writer.Writer,
 	return fc, nil
 }
 
+func NewFeatureCollectionWriterWithWriter(ctx context.Context, wr io.Writer) (writer.Writer, error) {
+
+	io_wr, err := writer.NewIOWriterWithWriter(ctx, wr)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new IOWriter, %w", err)
+	}
+
+	mu := new(sync.RWMutex)
+
+	fc := &FeatureCollectionWriter{
+		writer: io_wr,
+		mu:     mu,
+		count:  int64(0),
+	}
+
+	return fc, nil
+}
+
 func (fc *FeatureCollectionWriter) Write(ctx context.Context, key string, fh io.ReadSeeker) (int64, error) {
 
 	body, err := io.ReadAll(fh)
