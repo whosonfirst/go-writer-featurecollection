@@ -36,7 +36,7 @@ func NewFeatureCollectionWriter(ctx context.Context, uri string) (writer.Writer,
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URI, %w", err)
 	}
 
 	q := u.Query()
@@ -50,7 +50,7 @@ func NewFeatureCollectionWriter(ctx context.Context, uri string) (writer.Writer,
 	wr, err := writer.NewWriter(ctx, wr_uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create writer for '%s', %w", wr_uri, err)
 	}
 
 	mu := new(sync.RWMutex)
@@ -88,13 +88,13 @@ func (fc *FeatureCollectionWriter) Write(ctx context.Context, key string, fh io.
 	body, err := io.ReadAll(fh)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed to read  filehandle, %w", err)
 	}
 
 	_, err = geojson.UnmarshalFeature(body)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed to unmarshal GeoJSON feature, %w", err)
 	}
 
 	fc.mu.Lock()
@@ -114,7 +114,13 @@ func (fc *FeatureCollectionWriter) Write(ctx context.Context, key string, fh io.
 
 	sr := strings.NewReader(preamble + string(body))
 
-	return fc.writer.Write(ctx, key, sr)
+	i, err := fc.writer.Write(ctx, key, sr)
+
+	if err != nil {
+		return 0, fmt.Errorf("Failed write body, %w", err)
+	}
+
+	return i, nil
 }
 
 func (fc *FeatureCollectionWriter) WriterURI(ctx context.Context, str_uri string) string {
@@ -137,7 +143,7 @@ func (fc *FeatureCollectionWriter) Close(ctx context.Context) error {
 	_, err := fc.writer.Write(ctx, "", sr)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to write closure, %w", err)
 	}
 
 	return nil
