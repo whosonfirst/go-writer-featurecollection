@@ -29,6 +29,7 @@ type FeatureCollectionWriter struct {
 	writer writer.Writer
 	mu     *sync.RWMutex
 	count  int64
+	closed bool
 }
 
 func NewFeatureCollectionWriter(ctx context.Context, uri string) (writer.Writer, error) {
@@ -133,10 +134,19 @@ func (fc *FeatureCollectionWriter) Flush(ctx context.Context) error {
 
 func (fc *FeatureCollectionWriter) Close(ctx context.Context) error {
 
-	body := `]}`
+	if fc.closed {
+		return fmt.Errorf("Feature collection writer has already been closed")
+	}
+
+	fc.mu.Lock()
+	defer fc.mu.Unlock()
+
+	var body string
 
 	if atomic.LoadInt64(&fc.count) == 0 {
 		body = `{"type":"FeatureCollection", "features":[]}`
+	} else {
+		body = `]}`
 	}
 
 	sr := strings.NewReader(body)
@@ -146,6 +156,7 @@ func (fc *FeatureCollectionWriter) Close(ctx context.Context) error {
 		return fmt.Errorf("Failed to write closure, %w", err)
 	}
 
+	fc.closed = true	
 	return nil
 }
 
