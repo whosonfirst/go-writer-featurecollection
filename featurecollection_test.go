@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"github.com/paulmach/orb/geojson"
-	"github.com/whosonfirst/go-writer/v3"
 	"strings"
 	"testing"
+
+	"github.com/paulmach/orb/geojson"
+	"github.com/whosonfirst/go-writer/v3"	
 )
 
 func TestFeatureCollectionWriter(t *testing.T) {
